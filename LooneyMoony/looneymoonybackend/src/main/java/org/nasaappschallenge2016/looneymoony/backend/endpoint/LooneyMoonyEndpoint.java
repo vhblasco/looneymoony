@@ -5,6 +5,7 @@ import com.google.api.server.spi.config.ApiMethod;
 import com.google.api.server.spi.config.ApiNamespace;
 
 import org.nasaappschallenge2016.looneymoony.backend.bean.FunFact;
+import org.nasaappschallenge2016.looneymoony.backend.bean.MoonStory;
 import org.nasaappschallenge2016.looneymoony.backend.json.LMJSONParser;
 
 import java.util.List;
@@ -27,8 +28,12 @@ import java.util.Random;
 public class LooneyMoonyEndpoint {
 
     private LMJSONParser parser = new LMJSONParser();
+
     private List<FunFact> funfactList = null;
-    private Random rnd = new Random(System.nanoTime());
+    private List<MoonStory> moonStoriesList = null;
+
+    private Random rndFF = new Random(System.nanoTime());
+    private Random rndMS = new Random(System.nanoTime());
 
     /** A simple endpoint method that takes a name and says Hi back */
     @ApiMethod(name = "getFanFact")
@@ -42,18 +47,46 @@ public class LooneyMoonyEndpoint {
 
 
             int max = funfactList.size();
-            int index = rnd.nextInt((max - 0) + 1);
+            int index = rndFF.nextInt((max - 0) + 1);
 
             response = funfactList.get(index);
         }catch (Exception e){
 
         }
+
         return response;
     }
 
+    /** A simple endpoint method that takes a name and says Hi back */
+    @ApiMethod(name = "getMoonStory")
+    public MoonStory getMoonStory() {
+        MoonStory response = null;
+
+        try {
+            if (null == moonStoriesList) {
+                initMoonStoriesList();
+            }
+
+
+            int max = moonStoriesList.size();
+            int index = rndMS.nextInt((max - 0) + 1);
+
+            response = moonStoriesList.get(index);
+        }catch (Exception e){
+
+        }
+
+        return response;
+    }
+
+    private void initMoonStoriesList()  throws Exception{
+
+        moonStoriesList = parser.getMoonStory("moon_stories.json");
+
+    }
     private void initFunFactList()  throws Exception{
 
-        funfactList = parser.getFunFacts("./fun_facts.json");
+        funfactList = parser.getFunFacts("fun_facts.json");
 
     }
 

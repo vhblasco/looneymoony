@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.nasaappschallenge2016.looneymoony.backend.bean.FunFact;
+import org.nasaappschallenge2016.looneymoony.backend.bean.MoonStory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,11 +15,6 @@ import java.util.List;
  * Created by vhblasco on 23/04/16.
  */
 public class LMJSONParser {
-    public List<FunFact> getFunFacts(String path){
-        JSONObject jObject = loadJSON(path);
-
-        return parseFunFacts(jObject);
-    }
 
     private JSONObject loadJSON(String path) {
 
@@ -26,7 +22,10 @@ public class LMJSONParser {
         try {
 
 
-            InputStream is =  LMJSONParser.class.getResourceAsStream(path);
+            ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+            InputStream is = classloader.getResourceAsStream(path);
+
+            //InputStream is =  LMJSONParser.class.getResourceAsStream(path);
             int size = is.available();
             byte[] buffer = new byte[size];
 
@@ -51,9 +50,87 @@ public class LMJSONParser {
     }
 
 
+    /***************************************************************************/
+    /* STORIES */
+    /***************************************************************************/
+    public List<MoonStory> getMoonStory(String path){
+        JSONObject jObject = loadJSON(path);
+
+        return parseMoonStories(jObject);
+    }
+
+
+    private List<MoonStory> parseMoonStories(JSONObject jObject) {
+        JSONArray jMoonStories = null;
+        try {
+            /** Retrieves all the elements in the 'stories' array */
+            jMoonStories = jObject.getJSONArray("stories");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return parseStoriesArray(jMoonStories);
+    }
+
+    private List<MoonStory> parseStoriesArray(JSONArray jMoonStories) {
+
+        int storiesCount = jMoonStories.length();
+        List<MoonStory> moonStoriesList = new ArrayList<MoonStory>();
+        MoonStory moonStory = null;
+
+        /** Taking each MoonStory, parses and adds to list object */
+        for(int i = 0; i < storiesCount; i++){
+            try {
+                /** Call parseMoonStory with JSON object to parse the MoonStory */
+                moonStory = parseMoonStory((JSONObject)jMoonStories.get(i));
+                moonStoriesList.add(moonStory);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return moonStoriesList;
+    }
+
+
+    private MoonStory parseMoonStory(JSONObject jStory) {
+        MoonStory moonStory = null;
+
+        try {
+            moonStory = new MoonStory();
+
+            // Extracting title, if available
+            if(!jStory.isNull("title")){
+                moonStory.setTitle(jStory.getString("title"));
+            }
+
+            // Extracting text, if available
+            if(!jStory.isNull("text")){
+                moonStory.setText(jStory.getString("text"));
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        return moonStory;
+
+    }
+
+    /***************************************************************************/
+    /* FUN FACTS */
+    /***************************************************************************/
+    public List<FunFact> getFunFacts(String path){
+        JSONObject jObject = loadJSON(path);
+
+        return parseFunFacts(jObject);
+    }
+
+
+
     private List<FunFact> parseFunFacts(JSONObject jObject) {
         JSONArray jFacts = null;
-        String type = "";
         try {
             /** Retrieves all the elements in the 'facts' array */
             jFacts = jObject.getJSONArray("facts");
@@ -73,7 +150,7 @@ public class LMJSONParser {
         /** Taking each Facts, parses and adds to list object */
         for(int i = 0; i < factsCount; i++){
             try {
-                /** Call parseFact with wisdom JSON object to parse the FunFact */
+                /** Call parseFact with JSON object to parse the FunFact */
                 funFact = parseFact((JSONObject)jFacts.get(i));
                 funFactsList.add(funFact);
             } catch (JSONException e) {
